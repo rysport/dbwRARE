@@ -26,7 +26,7 @@ numTa = len(acquistionTimes)
 partialFourierFactors = np.linspace(start=0.5, stop=1, num=numPF)
 dephasingTimes = np.empty(shape=(numPF,numFrac,numTa,2), dtype=np.float32)
 firstEchoFractions = np.linspace(start=0, stop=1, num=numFrac)
-CRB = np.empty(shape=(numPF,numFrac,numTa,2), dtype=np.float32) # [W, F] at 0% fat fraction
+NSA = np.empty(shape=(numPF,numFrac,numTa,2), dtype=np.float32) # [W, F] at 0% fat fraction
 
 for nt, ta in enumerate(acquistionTimes):
     for nPF,PF in enumerate(partialFourierFactors):
@@ -34,13 +34,13 @@ for nt, ta in enumerate(acquistionTimes):
             dephasingTimes[nPF, nf, nt, :] = getDephasingTimes(ta/1e3, PF, f)
             weights = weightsFromFraction(f);
             #print(dephasingTimes[nPF, nf, nt, :])
-            CRB[nPF, nf, nt, :] = weightedCrbTwoEchoes(B0, dephasingTimes[nPF, nf, nt, :], weights)
-    print(nPF)
+            NSA[nPF, nf, nt, :] = np.reciprocal( weightedCrbTwoEchoes(B0, dephasingTimes[nPF, nf, nt, :], weights) )
+    print(100.*nt/numTa)
 
 
 p2 = figure(height=350, width=700,tools="hover", toolbar_location=None, title='Search space')
-CDSimages = [ColumnDataSource({'imageData': [CRB[:,:,-1,0]]}),
-             ColumnDataSource({'imageData': [CRB[:,:,-1,1]]})]
+CDSimages = [ColumnDataSource({'imageData': [NSA[:,:,-1,0]]}),
+             ColumnDataSource({'imageData': [NSA[:,:,-1,1]]})]
 p2.image(image='imageData', x=0,       y=0, dw=numFrac, dh=numPF, palette=viridis(100), source=CDSimages[0])
 p2.image(image='imageData', x=numFrac, y=0, dw=numFrac, dh=numPF, palette=viridis(100), source=CDSimages[1])
 p2.x_range.range_padding = p2.y_range.range_padding = 0
@@ -98,12 +98,12 @@ sliderCallback = CustomJS(
     args={
         'acquistionTimes': acquistionTimes,
         'images': CDSimages,
-        'CRB': CRB},
+        'NSA': NSA},
     code="""
     window.taIdx = Math.floor((cb_obj.value - cb_obj.start ) / cb_obj.step)
     console.log(window.taIdx)
-    images[0].data.imageData = [CRB.map(PF => PF.map(f => f[window.taIdx][0])).flat()]
-    images[1].data.imageData = [CRB.map(PF => PF.map(f => f[window.taIdx][1])).flat()]
+    images[0].data.imageData = [NSA.map(PF => PF.map(f => f[window.taIdx][0])).flat()]
+    images[1].data.imageData = [NSA.map(PF => PF.map(f => f[window.taIdx][1])).flat()]
     images[0].change.emit();
     images[1].change.emit();
     """
