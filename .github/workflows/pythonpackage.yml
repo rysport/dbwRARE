@@ -24,20 +24,20 @@ jobs:
       run: |
         python optimizeCoupledTrapezoids.py
         mkdir build
-        echo "<h1>Funkar bra</h1>" > build/index.html
+        #echo "<h1>Funkar bra</h1>" > build/index.html
     - name: Upload Artifacts # The project is then uploaded as an artifact named 'site'.
-        uses: actions/upload-artifact@v1
-        with:
-          name: site
-          path: build
+      uses: actions/upload-artifact@v1
+      with:
+        name: site
+        path: build
   deploy:
-      needs: [build]
-      runt-on: ubuntu-latest
-      steps:
-      - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@3.0.3
-        with:
-          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-          BASE_BRANCH: master # The branch the action should deploy from.
-          BRANCH: gh-pages # The branch the action should deploy to.
-          FOLDER: 'site' # The folder the action should deploy.
+    needs: [build]
+    runt-on: ubuntu-latest
+    steps:
+    - name: Deploy to GitHub Pages
+      uses: JamesIves/github-pages-deploy-action@3.0.3
+      with:
+        ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+        BASE_BRANCH: master # The branch the action should deploy from.
+        BRANCH: gh-pages # The branch the action should deploy to.
+        FOLDER: 'site' # The folder the action should deploy.
