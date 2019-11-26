@@ -1,4 +1,4 @@
-name: Python package
+name: Build and publish page
 
 on: [push]
 
@@ -32,7 +32,7 @@ jobs:
         path: build
   deploy:
     needs: [build]
-    runt-on: ubuntu-latest
+    runs-on: ubuntu-latest
     steps:
     - name: Deploy to GitHub Pages
       uses: JamesIves/github-pages-deploy-action@3.0.3
