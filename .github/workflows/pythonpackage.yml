@@ -35,15 +35,6 @@ jobs:
             </body>
           </html>
           EOL
-    - name: Upload Artifacts # The project is then uploaded as an artifact named 'site'.
-      uses: actions/upload-artifact@v1
-      with:
-        name: site
-        path: build
-  deploy:
-    needs: [build]
-    runs-on: ubuntu-latest
-    steps:
     - name: Deploy
       if: success()
       uses: crazy-max/ghaction-github-pages@v1
