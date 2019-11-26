@@ -18,8 +18,7 @@ def plot(numFrac, numPF, args):
     B0 = 3 # Tesla
     mapper = LinearColorMapper(palette='Spectral11', low=0, high=1)
     colorBar = ColorBar(color_mapper=mapper, location=(0,0))
-
-    acquistionTimes = np.arange(start=args.tmin, stop=args.tmax, step=args.dt)
+    acquistionTimes = np.arange(start=float(args.tmin), stop=float(args.tmax), step=float(args.dt))
     numTa = len(acquistionTimes)
     partialFourierFactors = np.linspace(start=0.5, stop=1, num=numPF)
     dephasingTimes = np.empty(shape=(numPF,numFrac,numTa,2), dtype=np.float32)
@@ -170,5 +169,5 @@ if __name__ == "__main__":
                         help='Step size t_a [ms]',
                         default=.5)
     args = parser.parse_args()
-    plot(args.fres, args.pfres, args)
+    plot(int(args.fres), int(args.pfres), args)
     
