@@ -4,13 +4,11 @@ on: [push]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 4
       matrix:
         python-version: [3.7]
-
     steps:
     - uses: actions/checkout@v1
     - name: Set up Python ${{ matrix.python-version }}
@@ -22,9 +20,24 @@ jobs:
         python -m pip install --upgrade pip
         pip install bokeh
         pip install numpy
-    - name: Test with pytest
+    - name: Generate objective function plot
       run: |
-        pwd
-        ls -l
         python optimizeCoupledTrapezoids.py
-        ls -l
+        mkdir build
+        echo "<h1>Funkar bra</h1>" > build/index.html
+    - name: Upload Artifacts # The project is then uploaded as an artifact named 'site'.
+        uses: actions/upload-artifact@v1
+        with:
+          name: site
+          path: build
+  deploy:
+      needs: [build]
+      runt-on: ubuntu-latest
+      steps:
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@3.0.3
+        with:
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          BASE_BRANCH: master # The branch the action should deploy from.
+          BRANCH: gh-pages # The branch the action should deploy to.
+          FOLDER: 'site' # The folder the action should deploy.
