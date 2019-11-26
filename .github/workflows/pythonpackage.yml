@@ -24,17 +24,7 @@ jobs:
       run: |
         python optimizeCoupledTrapezoids.py
         mkdir build
-        cat > build/index.html <<EOL
-          <!doctype html>
-          <html>
-            <head>
-              <title>GitHub Pages deployed!</title>
-            </head>
-            <body>
-              <p>GitHub Pages with <strong>${{ github.sha }}</strong> commit ID has been deployed through <a href="https://github.com/marketplace/actions/github-pages">GitHub Pages action</a> successfully.</p>
-            </body>
-          </html>
-          EOL
+        mv dbwRARE.html build/index.html
     - name: Deploy
       if: success()
       uses: crazy-max/ghaction-github-pages@v1

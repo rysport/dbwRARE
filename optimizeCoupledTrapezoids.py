@@ -1,7 +1,7 @@
 import numpy as np
 from supportFunctions import weightsFromFraction, getDephasingTimes, weightedCrbTwoEchoes
 import bokeh
-from bokeh.plotting import figure, output_file, output_notebook, show
+from bokeh.plotting import figure, output_file, output_notebook, save
 from bokeh.models import ColumnDataSource, CustomJS, Title, HoverTool, Span, NormalHead, Arrow, LinearColorMapper, ColorBar
 from bokeh.palettes import viridis, plasma
 from bokeh.layouts import column, row
@@ -11,7 +11,7 @@ numFrac = 192
 numPF = 192
 W = weightsFromFraction(np.linspace(0,1,numFrac))
 
-#output_file()
+
 
 p1 = figure(height=200, width=200, toolbar_location=None, title='Weights')
 
@@ -143,5 +143,7 @@ sliderCallback = CustomJS(
     """
     )
 slider.js_on_change('value', sliderCallback)
-
-show(column(row(pWeighted, pUnWeighted), row(pGrad, pCompass), slider))
+filename='dbwRARE.html'
+output_file(filename)
+combinedPlot = column(row(pWeighted, pUnWeighted), row(pGrad, pCompass), slider)
+save(combinedPlot, filename=filename, title='dBW RARE')
