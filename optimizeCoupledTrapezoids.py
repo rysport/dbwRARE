@@ -2,13 +2,13 @@ import numpy as np
 from supportFunctions import weightsFromFraction, getDephasingTimes, weightedCrbTwoEchoes
 import bokeh
 from bokeh.plotting import figure, output_file, output_notebook, show
-from bokeh.models import ColumnDataSource, CustomJS, Title, HoverTool, Span, NormalHead, Arrow
-from bokeh.palettes import viridis
+from bokeh.models import ColumnDataSource, CustomJS, Title, HoverTool, Span, NormalHead, Arrow, LinearColorMapper, ColorBar
+from bokeh.palettes import viridis, plasma
 from bokeh.layouts import column, row
 from bokeh.models.widgets import Slider
 
-numFrac = 256
-numPF = 256
+numFrac = 192
+numPF = 192
 W = weightsFromFraction(np.linspace(0,1,numFrac))
 
 #output_file()
@@ -19,30 +19,34 @@ l = p1.line(np.linspace(0,1,numFrac), W[1], legend_label="w1", color='navy')
 l = p1.line(np.linspace(0,1,numFrac), W[1], legend_label="w2", color='chocolate')
 
 B0 = 3 # Tesla
+mapper = LinearColorMapper(palette='Spectral11', low=0, high=1)
+colorBar = ColorBar(color_mapper=mapper, location=(0,0))
 
-acquistionTimes = np.arange(start=2.3, stop=6.6, step=.5)
+acquistionTimes = np.arange(start=2.3, stop=6.6, step=2)
 numTa = len(acquistionTimes)
 partialFourierFactors = np.linspace(start=0.5, stop=1, num=numPF)
 dephasingTimes = np.empty(shape=(numPF,numFrac,numTa,2), dtype=np.float32)
 firstEchoFractions = np.linspace(start=0, stop=1, num=numFrac)
-NSA = np.empty(shape=(numPF,numFrac,numTa,2), dtype=np.float32) # [W, F] at 0% fat fraction
+NSA = np.empty(shape=(numPF,numFrac,numTa,2 ), dtype=np.float32) # NSA_ss [weighted, unweighted]
 
 for nt, ta in enumerate(acquistionTimes):
     for nPF,PF in enumerate(partialFourierFactors):
         for nf, f in enumerate(firstEchoFractions):
             dephasingTimes[nPF, nf, nt, :] = getDephasingTimes(ta/1.0e3, PF, f)
             weights = weightsFromFraction(f)
-            NSA[nPF, nf, nt, :] = np.reciprocal( weightedCrbTwoEchoes(B0, dephasingTimes[nPF, nf, nt, :], weights) )
+            NSA[nPF, nf, nt, 0] = np.mean( np.reciprocal( weightedCrbTwoEchoes(B0, dephasingTimes[nPF, nf, nt, :], weights) ) ) # Weighted NSA_ss
+            NSA[nPF, nf, nt, 1] = np.mean( np.reciprocal( weightedCrbTwoEchoes(B0, dephasingTimes[nPF, nf, nt, :], weightsFromFraction(.5)) ) ) # Unweighted NSA_ss
     print(100.*(nt+1)/numTa)
 
-pWat = figure(height=350, width=350, toolbar_location=None, title='Water NSA (3T)')
-pFat = figure(height=350, width=350, toolbar_location=None, title='Fat NSA (3T)')
+pWeighted = figure(height=350, width=350, toolbar_location=None, title='Weighted NSA_ss (3T)')
+pUnWeighted = figure(height=350, width=350, toolbar_location=None, title='Unweighted NSA_ss (3T)')
+pUnWeighted.add_layout(colorBar, 'right')
 CDSimages = [ColumnDataSource({'imageData': [NSA[:,:,-1,0]]}),
              ColumnDataSource({'imageData': [NSA[:,:,-1,1]]})]
-pWat.image(image='imageData', x=0, y=0, dw=numFrac, dh=numPF, palette=viridis(100), source=CDSimages[0])
-pFat.image(image='imageData', x=0, y=0, dw=numFrac, dh=numPF, palette=viridis(100), source=CDSimages[1])
+pWeighted.image(image='imageData', x=0, y=0, dw=numFrac, dh=numPF, color_mapper=mapper, source=CDSimages[0])
+pUnWeighted.image(image='imageData', x=0, y=0, dw=numFrac, dh=numPF, color_mapper=mapper, source=CDSimages[1])
 
-for p in [pWat, pFat]:
+for p in [pWeighted, pUnWeighted]:
     p.xaxis.ticker = [0, (numFrac-1)/4, (numFrac-1)/2, 3*(numFrac-1)/4, numFrac-1]
     p.xaxis.major_label_overrides = {0:'0',
                                      (numFrac-1)/4: '.25',
@@ -54,8 +58,8 @@ for p in [pWat, pFat]:
                                      (numPF-1)/2: '.75',
                                      numPF-1: '1.0'}
 
-pWat.x_range.range_padding = pWat.y_range.range_padding = 0
-pFat.x_range.range_padding = pFat.y_range.range_padding = 0
+pWeighted.x_range.range_padding = pWeighted.y_range.range_padding = 0
+pUnWeighted.x_range.range_padding = pUnWeighted.y_range.range_padding = 0
 spans = [Span(location=-1, dimension='height', line_color='navy', line_dash='dashed'),
          Span(location=-1, dimension='height', line_color='chocolate', line_dash='dashed')]
 pGrad = figure(height=350, width=350, toolbar_location=None, title='Gradients')
@@ -79,7 +83,7 @@ slider = Slider(start=np.min(acquistionTimes),
                 step=acquistionTimes[1]-acquistionTimes[0],
                 title="Available acquisition time [ms]")
 
-# dephasingTimes[PfIdx][fIdx][0][0];
+
 hoverCallback = CustomJS(
                         args={
                          'dephasingTimes': dephasingTimes,
@@ -122,8 +126,8 @@ hoverCallback = CustomJS(
                             window.pfIdx = pfIdx;
                         }
                         """)
-pWat.add_tools(HoverTool(tooltips=None, callback=hoverCallback, mode='mouse'))
-pFat.add_tools(HoverTool(tooltips=None, callback=hoverCallback, mode='mouse'))
+pWeighted.add_tools(HoverTool(tooltips=None, callback=hoverCallback, mode='mouse'))
+pUnWeighted.add_tools(HoverTool(tooltips=None, callback=hoverCallback, mode='mouse'))
 sliderCallback = CustomJS(
     args={
         'acquistionTimes': acquistionTimes,
@@ -140,6 +144,4 @@ sliderCallback = CustomJS(
     )
 slider.js_on_change('value', sliderCallback)
 
-
-# put the results in a column and show
-show(column(row(pWat, pFat), row(pGrad, pCompass), slider))
+show(column(row(pWeighted, pUnWeighted), row(pGrad, pCompass), slider))
