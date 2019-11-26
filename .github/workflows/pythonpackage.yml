@@ -24,6 +24,7 @@ jobs:
         pip install numpy
     - name: Test with pytest
       run: |
+        pwd
         pip install pytest
         pytest supportFunctions.py
         pytest optimizeCoupledTrapezoids.py
