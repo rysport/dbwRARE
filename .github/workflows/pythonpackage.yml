@@ -25,6 +25,7 @@ jobs:
     - name: Test with pytest
       run: |
         pwd
+        ls -l
         pip install pytest
         pytest supportFunctions.py
         pytest optimizeCoupledTrapezoids.py
