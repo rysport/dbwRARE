@@ -24,7 +24,17 @@ jobs:
       run: |
         python optimizeCoupledTrapezoids.py
         mkdir build
-        echo "<h1>Funkar bra</h1>" > build/index.html
+        cat > build/index.html <<EOL
+          <!doctype html>
+          <html>
+            <head>
+              <title>GitHub Pages deployed!</title>
+            </head>
+            <body>
+              <p>GitHub Pages with <strong>${{ github.sha }}</strong> commit ID has been deployed through <a href="https://github.com/marketplace/actions/github-pages">GitHub Pages action</a> successfully.</p>
+            </body>
+          </html>
+          EOL
     - name: Upload Artifacts # The project is then uploaded as an artifact named 'site'.
       uses: actions/upload-artifact@v1
       with:
@@ -34,10 +44,11 @@ jobs:
     needs: [build]
     runs-on: ubuntu-latest
     steps:
-    - name: Deploy to GitHub Pages
-      uses: JamesIves/github-pages-deploy-action@3.0.3
+    - name: Deploy
+      if: success()
+      uses: crazy-max/ghaction-github-pages@v1
       with:
-        ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-        BASE_BRANCH: master # The branch the action should deploy from.
-        BRANCH: gh-pages # The branch the action should deploy to.
-        FOLDER: 'site' # The folder the action should deploy.
+        target_branch: gh-pages
+        build_dir: build
+      env:
+        GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
