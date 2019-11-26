@@ -22,10 +22,10 @@ jobs:
         python -m pip install --upgrade pip
         pip install bokeh
         pip install numpy
+        pip install pytest
     - name: Test with pytest
       run: |
         pwd
         ls -l
-        pip install pytest
-        pytest supportFunctions.py
-        pytest optimizeCoupledTrapezoids.py
+        pytest ./supportFunctions.py
+        pytest ./optimizeCoupledTrapezoids.py
