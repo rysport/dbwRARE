@@ -22,7 +22,7 @@ jobs:
         pip install numpy
     - name: Generate objective function plot
       run: |
-        python optimizeCoupledTrapezoids.py --filename dbwRARE.html --t Magi --fres 320 -- pfres 320 --tmin 2.3 --tmax 8 --dt 0.1
+        python optimizeCoupledTrapezoids.py --filename dbwRARE.html --title Magi --fres 320 -- pfres 320 --tmin 2.3 --tmax 8 --dt 0.1
         mkdir build
         mv dbwRARE.html build/index.html
     - name: Deploy
