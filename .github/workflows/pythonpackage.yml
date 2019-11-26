@@ -24,7 +24,7 @@ jobs:
       run: |
         python optimizeCoupledTrapezoids.py
         mkdir build
-        #echo "<h1>Funkar bra</h1>" > build/index.html
+        echo "<h1>Funkar bra</h1>" > build/index.html
     - name: Upload Artifacts # The project is then uploaded as an artifact named 'site'.
       uses: actions/upload-artifact@v1
       with:
