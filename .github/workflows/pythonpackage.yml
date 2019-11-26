@@ -27,5 +27,4 @@ jobs:
       run: |
         pwd
         ls -l
-        pytest ./supportFunctions.py
-        pytest ./optimizeCoupledTrapezoids.py
+        python optimizeCoupledTrapezoids.py
